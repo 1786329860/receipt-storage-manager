@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Trust system CAs and user-installed CAs for all domains -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+    <!-- Explicitly trust career.aixiaolv.icu -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">career.aixiaolv.icu</domain>
+        <domain includeSubdomains="true">aixiaolv.icu</domain>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </domain-config>
+</network-security-config>
