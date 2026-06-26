@@ -4,6 +4,7 @@ import { ArrowLeft, Edit3, Trash2, Loader2, Image as ImageIcon } from 'lucide-re
 import { receiptsApi, assetUrl } from '@/lib/api';
 import { formatMoney, formatDate, getPaymentLabel, getStatusLabel, notifyDataChanged } from '@/lib/utils';
 import type { Receipt, ReceiptItem } from '@/types';
+import ImagePreview from '@/components/ImagePreview';
 
 export default function ReceiptDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -11,6 +12,7 @@ export default function ReceiptDetailPage() {
   const [receipt, setReceipt] = useState<(Receipt & { items: ReceiptItem[] }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -120,7 +122,12 @@ export default function ReceiptDetailPage() {
         {receipt.image_url && (
           <div className="card p-4">
             <p className="text-sm font-medium text-slate-500 mb-2">小票图片</p>
-            <img src={assetUrl(receipt.image_url)} alt="小票" className="rounded-xl max-h-60 w-full object-contain bg-slate-50" />
+            <img
+              src={assetUrl(receipt.image_url)}
+              alt="小票"
+              onClick={() => setPreviewImage(assetUrl(receipt.image_url))}
+              className="rounded-xl max-h-60 w-full object-contain bg-slate-50 cursor-zoom-in active:opacity-90 transition-opacity"
+            />
           </div>
         )}
 
@@ -146,6 +153,14 @@ export default function ReceiptDetailPage() {
           </div>
         )}
       </div>
+
+      {/* 图片预览 */}
+      {previewImage && (
+        <ImagePreview
+          images={[previewImage]}
+          onClose={() => setPreviewImage(null)}
+        />
+      )}
     </div>
   );
 }

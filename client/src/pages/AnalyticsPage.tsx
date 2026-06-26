@@ -70,16 +70,20 @@ export default function AnalyticsPage() {
 
   async function loadData() {
     try {
-      const [ov, mt, dt] = await Promise.all([
+      // allSettled: 单个接口失败不影响其他，避免整页空白
+      const [ovRes, mtRes, dtRes] = await Promise.allSettled([
         analyticsApi.overview({ start_date: startDate, end_date: endDate }),
         analyticsApi.monthlyTrend(year),
         analyticsApi.dailyTrend({ start_date: startDate, end_date: endDate }),
       ]);
-      setOverview(ov);
-      setMonthlyTrend(mt);
-      setDailyTrend(dt);
-      // 写入本地缓存
-      saveCache('analytics', { overview: ov, monthlyTrend: mt, dailyTrend: dt }, paramHash);
+      // 仅在成功时更新，失败时保留缓存/旧数据
+      if (ovRes.status === 'fulfilled') setOverview(ovRes.value);
+      if (mtRes.status === 'fulfilled') setMonthlyTrend(mtRes.value);
+      if (dtRes.status === 'fulfilled') setDailyTrend(dtRes.value);
+      // 三个都成功才缓存
+      if (ovRes.status === 'fulfilled' && mtRes.status === 'fulfilled' && dtRes.status === 'fulfilled') {
+        saveCache('analytics', { overview: ovRes.value, monthlyTrend: mtRes.value, dailyTrend: dtRes.value }, paramHash);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -91,15 +95,17 @@ export default function AnalyticsPage() {
   async function silentRefresh() {
     setRefreshing(true);
     try {
-      const [ov, mt, dt] = await Promise.all([
+      const [ovRes, mtRes, dtRes] = await Promise.allSettled([
         analyticsApi.overview({ start_date: startDate, end_date: endDate }),
         analyticsApi.monthlyTrend(year),
         analyticsApi.dailyTrend({ start_date: startDate, end_date: endDate }),
       ]);
-      setOverview(ov);
-      setMonthlyTrend(mt);
-      setDailyTrend(dt);
-      saveCache('analytics', { overview: ov, monthlyTrend: mt, dailyTrend: dt }, paramHash);
+      if (ovRes.status === 'fulfilled') setOverview(ovRes.value);
+      if (mtRes.status === 'fulfilled') setMonthlyTrend(mtRes.value);
+      if (dtRes.status === 'fulfilled') setDailyTrend(dtRes.value);
+      if (ovRes.status === 'fulfilled' && mtRes.status === 'fulfilled' && dtRes.status === 'fulfilled') {
+        saveCache('analytics', { overview: ovRes.value, monthlyTrend: mtRes.value, dailyTrend: dtRes.value }, paramHash);
+      }
     } catch (err) {
       console.error(err);
     } finally {

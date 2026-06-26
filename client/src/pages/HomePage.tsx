@@ -48,13 +48,22 @@ export default function HomePage() {
   async function loadData() {
     try {
       const range = getMonthRange();
-      const [overviewData, receiptsData] = await Promise.all([
+      // allSettled: 一个接口失败不影响另一个，避免整页空白
+      const [ovRes, rcRes] = await Promise.allSettled([
         analyticsApi.overview(range),
         receiptsApi.list({ limit: '5' }),
       ]);
-      setOverview(overviewData);
-      setRecentReceipts(receiptsData.data);
-      saveCache('home', { overview: overviewData, recentReceipts: receiptsData.data });
+      // 仅在成功时更新，失败时保留缓存/旧数据
+      if (ovRes.status === 'fulfilled') {
+        setOverview(ovRes.value);
+      }
+      if (rcRes.status === 'fulfilled') {
+        setRecentReceipts(rcRes.value.data);
+      }
+      // 两个都成功才缓存，避免缓存半空数据
+      if (ovRes.status === 'fulfilled' && rcRes.status === 'fulfilled') {
+        saveCache('home', { overview: ovRes.value, recentReceipts: rcRes.value.data });
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -67,13 +76,15 @@ export default function HomePage() {
     setRefreshing(true);
     try {
       const range = getMonthRange();
-      const [overviewData, receiptsData] = await Promise.all([
+      const [ovRes, rcRes] = await Promise.allSettled([
         analyticsApi.overview(range),
         receiptsApi.list({ limit: '5' }),
       ]);
-      setOverview(overviewData);
-      setRecentReceipts(receiptsData.data);
-      saveCache('home', { overview: overviewData, recentReceipts: receiptsData.data });
+      if (ovRes.status === 'fulfilled') setOverview(ovRes.value);
+      if (rcRes.status === 'fulfilled') setRecentReceipts(rcRes.value.data);
+      if (ovRes.status === 'fulfilled' && rcRes.status === 'fulfilled') {
+        saveCache('home', { overview: ovRes.value, recentReceipts: rcRes.value.data });
+      }
     } catch (err) {
       console.error(err);
     } finally {

@@ -61,3 +61,22 @@ desktop.ini
 
 # ===== 本地配置 =====
 mobile/android/local.properties
+
+# ===== 临时脚本与生成产物（不应入库）=====
+.workbuddy/
+apply_template_format.py
+generate_report.mjs
+_diag.cjs
+_api_test.cjs
+_sshlog.cjs
+_sshdb.cjs
+_sshenv.cjs
+_export_db.cjs
+_deploy_mysql.cjs
+_verify.cjs
+_db_dump.sql
+_template_extract.txt
+
+# ===== 生成的报告文档（按需单独提供，不入库）=====
+票小兜项目报告*.docx
+排版优化报告.md
